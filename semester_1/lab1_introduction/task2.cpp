@@ -4,7 +4,11 @@ int main()
 {
     int n;
     std::cout << "Enter n: ";
-    std::cin >> n;
+    if(!(std::cin >> n) || n <= 0) 
+    {
+        std::cout << "Error!" << std::endl;
+        return 0;
+    }
     int sum = 0, mult = 1;
     for(int i = 1; i <= n; i++)
     {
