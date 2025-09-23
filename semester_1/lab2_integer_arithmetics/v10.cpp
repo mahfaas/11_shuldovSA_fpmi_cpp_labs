@@ -10,7 +10,6 @@ int main()
         return 0;
     }
     long long cur = 1; 
-    int n = 1;
     bool f = false;
     while(true) 
     {
@@ -20,7 +19,6 @@ int main()
             f = true;
         }
         cur = 2 * cur + 1;
-        n++;
         if(cur > b) 
             break;
     }
