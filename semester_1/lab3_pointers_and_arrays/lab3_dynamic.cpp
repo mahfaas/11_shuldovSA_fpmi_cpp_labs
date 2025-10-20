@@ -117,5 +117,5 @@ int main()
     std::cout << std::endl;
 
     delete[] arr;
-    return 0;
+    return 0;   
 }
