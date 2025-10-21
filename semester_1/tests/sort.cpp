@@ -2,18 +2,17 @@
 
 const int MAX_N = 1000;
 
-void sortBuble(int* a, int n)
+void sortBubble(int* a, int n)
 {
-    for(int i = 0; i < n; i++)
+    for(int i = 0; i < n - 1; i++)
     {
-        for(int j = i; j < n; j++)
+        for(int j = 0; j < n - i - 1; j++)
         {
-            if(std::abs(a[i]) > std::abs(a[j]))
-                std::swap(a[i], a[j]);
+            if(a[j] > a[j + 1])
+                std::swap(a[j], a[j + 1]);
         }
     }
 }
-
 bool enterArray(int* a, int n)
 {
     for(int i = 0; i < n; i++)
@@ -42,7 +41,7 @@ int main()
     for(int i = 0; i < n; i++)
         std::cout << mas[i] << " ";
     std::cout << std::endl;  
-    sortBuble(mas, n);
+    sortBubble(mas, n);
     std::cout << "Sorted array: " << std::endl;
     for(int i = 0; i < n; i++)
         std::cout << mas[i] << " ";
