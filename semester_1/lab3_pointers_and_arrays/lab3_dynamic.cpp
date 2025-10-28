@@ -2,6 +2,29 @@
 #include <cmath>
 #include <random>
 #include <iomanip>
+#include <stdexcept>
+
+bool safeInput(double &x)
+{
+    std::cin >> x;
+    if(std::cin.fail())
+    {
+        std::cout << "Error! Input must be a number." << std::endl;
+        return false;
+    }
+    return true;
+}
+
+bool safeInputInt(int &x)
+{
+    std::cin >> x;
+    if(std::cin.fail())
+    {
+        std::cout << "Error! Input must be an integer." << std::endl;
+        return false;
+    }
+    return true;
+}
 
 void merge(double* a, int left, int mid, int right, double* temp)
 {
@@ -37,13 +60,17 @@ void merge(double* a, int left, int mid, int right, double* temp)
     }
 
     for(int t = left; t < right; ++t)
+    {
         a[t] = temp[t];
+    }
 }
 
 void mergeSort(double* a, int left, int right, double* temp)
 {
     if(right - left <= 1)
+    {
         return;
+    }
 
     int mid = (left + right) / 2;
     mergeSort(a, left, mid, temp);
@@ -55,41 +82,53 @@ void keyboardEnter(double* arr, int n)
 {
     std::cout << "Enter " << n << " floats:" << std::endl;
     for(int i = 0; i < n; ++i)
-        std::cin >> arr[i];
+    {
+        if(!safeInput(arr[i]))
+        {
+            std::cout << "Error! Invalid input for array element." << std::endl;
+            return;
+        }
+    }
 }
 
-bool randEnter(double* arr, int n)
+void readRange(double &a, double &b)
 {
-    double a, b;
     std::cout << "Enter a and b (a <= b): ";
-    std::cin >> a >> b;
+    if(!safeInput(a) || !safeInput(b))
+    {
+        throw std::runtime_error("Error! Invalid input for range.");
+    }
     if(a > b)
     {
-        std::cout << "Error! Invalid a, b" << std::endl;
-        return false;
+        throw std::runtime_error("Error! Invalid range: a > b.");
     }
+}
 
-    std::mt19937 gen(45218965);
+void randEnter(double* arr, int n, double a, double b, std::mt19937 &gen)
+{
     std::uniform_real_distribution<> dis(a, b);
     for(int i = 0; i < n; ++i)
+    {
         arr[i] = dis(gen);
-
-    return true;
+    }
 }
 
 void printArray(const double* arr, int n)
 {
     for(int i = 0; i < n; ++i)
+    {
         std::cout << std::fixed << std::setprecision(2) << arr[i] << " ";
+    }
     std::cout << std::endl;
 }
 
 int countDistinct(double* arr, int n)
 {
     if(n == 0)
+    {
         return 0;
-    /*доп массив создаю исключительно для сортировки
-    можно использывать другую но эта мне очень нравится)*/
+    }
+
     double* temp = new double[n];
     mergeSort(arr, 0, n, temp);
     delete[] temp;
@@ -98,13 +137,20 @@ int countDistinct(double* arr, int n)
     for(int i = 1; i < n; ++i)
     {
         if(arr[i] != arr[i - 1])
+        {
             ++distinct;
+        }
     }
     return distinct;
 }
 
-bool productAfterMaxAbs(const double* arr, int n, double &product)
+double productAfterMaxAbs(const double* arr, int n)
 {
+    if(n == 0)
+    {
+        throw std::runtime_error("Error! Empty array.");
+    }
+
     int max_abs_idx = 0;
     double max_abs = std::abs(arr[0]);
     for(int i = 1; i < n; ++i)
@@ -117,12 +163,16 @@ bool productAfterMaxAbs(const double* arr, int n, double &product)
     }
 
     if(max_abs_idx >= n - 1)
-        return false;
+    {
+        throw std::runtime_error("Error! Max absolute element is the last one.");
+    }
 
-    product = 1.0;
+    double product = 1.0;
     for(int i = max_abs_idx + 1; i < n; ++i)
+    {
         product *= arr[i];
-    return true;
+    }
+    return product;
 }
 
 void transformArray(double* arr, int n)
@@ -149,7 +199,10 @@ int main()
 {
     int n;
     std::cout << "Enter the number of elements: ";
-    std::cin >> n;
+    if(!safeInputInt(n))
+    {
+        return 0;
+    }
     if(n < 1)
     {
         std::cout << "Error! Invalid n" << std::endl;
@@ -157,25 +210,47 @@ int main()
     }
 
     double* arr = new double[n];
+    std::mt19937 gen(45218965);
 
-    int choice;
-    std::cout << "Choose filling method: 1 - keyboard, 2 - random: ";
-    std::cin >> choice;
-    if(choice == 1)
-        keyboardEnter(arr, n);
-    else if(choice == 2)
     {
-        if(!randEnter(arr, n))
+        int choice;
+        std::cout << "Choose filling method: 1 - keyboard, 2 - random: ";
+        if(!safeInputInt(choice))
         {
             delete[] arr;
             return 0;
         }
-    }
-    else
-    {
-        std::cout << "Error! Invalid choice" << std::endl;
-        delete[] arr;
-        return 0;
+
+        switch(choice)
+        {
+            case 1:
+            {
+                keyboardEnter(arr, n);
+                break;
+            }
+            case 2:
+            {
+                double a, b;
+                try
+                {
+                    readRange(a, b);
+                }
+                catch(const std::runtime_error &e)
+                {
+                    std::cout << e.what() << std::endl;
+                    delete[] arr;
+                    return 0;
+                }
+                randEnter(arr, n, a, b, gen);
+                break;
+            }
+            default:
+            {
+                std::cout << "Error! Invalid choice" << std::endl;
+                delete[] arr;
+                return 0;
+            }
+        }
     }
 
     std::cout << "Array: ";
@@ -184,11 +259,15 @@ int main()
     int distinct = countDistinct(arr, n);
     std::cout << "Number of distinct elements: " << distinct << std::endl;
 
-    double product;
-    if(productAfterMaxAbs(arr, n, product))
+    try
+    {
+        double product = productAfterMaxAbs(arr, n);
         std::cout << "Product after max abs element: " << std::fixed << std::setprecision(2) << product << std::endl;
-    else
-        std::cout << "Cannot compute product: max abs is the last element" << std::endl;
+    }
+    catch(const std::runtime_error &e)
+    {
+        std::cout << e.what() << std::endl;
+    }
 
     transformArray(arr, n);
 
