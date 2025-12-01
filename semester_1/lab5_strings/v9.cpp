@@ -1,114 +1,120 @@
 #include <iostream>
 #include <string>
+#include <vector>
 #include <algorithm>
+#include <stdexcept>
+#include <cctype>
 
-bool isVowel(char c)
+bool IsLatinVowelLower(char ch)
 {
-    return c == 'a' || c == 'e' || c == 'i' || c == 'o' || c == 'u' || c == 'y';
+    return ch == 'a' || ch == 'e' || ch == 'i' ||
+           ch == 'o' || ch == 'u' || ch == 'y';
 }
 
-std::string vowToBig(const std::string &input)
+void ReplaceVowelsAndSpaces(std::string &s)
 {
-    std::string result = input;
-    for(size_t i = 0; i < result.size(); ++i)
+    for (char &ch : s)
     {
-        if(isVowel(result[i]))
+        if (IsLatinVowelLower(ch))
         {
-            result[i] = (char)toupper(result[i]);
+            ch = static_cast<char>(std::toupper(static_cast<unsigned char>(ch)));
+        }
+        else if (ch == ' ')
+        {
+            ch = '+';
         }
     }
-    return result;
 }
 
-std::string spaceToPlus(const std::string &input)
+std::vector<std::string> SplitIntoWords(const std::string &s)
 {
-    std::string result = input;
-    for(size_t i = 0; i < result.size(); ++i)
-    {
-        if(result[i] == ' ')
-        {
-            result[i] = '+';
-        }
-    }
-    return result;
-}
+    std::vector<std::string> words;
+    std::string current;
 
-int splitByPlus(const std::string &input, std::string* words, int maxCount)
-{
-    int count = 0;
-    std::string temp = "";
-    for(size_t i = 0; i < input.size(); ++i)
+    for (char ch : s)
     {
-        if(input[i] == '+')
+        if (ch == '+')
         {
-            if(!temp.empty() && count < maxCount)
+            if (!current.empty())
             {
-                *(words + count) = temp;
-                count++;
-                temp.clear();
+                words.push_back(current);
+                current.clear();
             }
         }
         else
         {
-            temp += input[i];
+            current.push_back(ch);
         }
     }
-    if(!temp.empty() && count < maxCount)
+
+    if (!current.empty())
     {
-        *(words + count) = temp;
-        count++;
+        words.push_back(current);
     }
-    return count;
+
+    return words;
 }
 
-void sortWords(std::string* words, int count)
+std::string JoinWords(const std::vector<std::string> &words)
 {
-    for(int i = 0; i < count - 1; ++i)
-    {
-        for(int j = i + 1; j < count; ++j)
-        {
-            if(*(words + j) < *(words + i))
-            {
-                std::string temp = *(words + i);
-                *(words + i) = *(words + j);
-                *(words + j) = temp;
-            }
-        }
-    }
-}
+    std::string result;
 
-std::string joinWithPlus(std::string* words, int count)
-{
-    std::string result = "";
-    for(int i = 0; i < count; ++i)
+    for (std::size_t i = 0; i < words.size(); ++i)
     {
-        result += *(words + i);
-        if(i != count - 1)
+        if (i > 0)
         {
-            result += '+';
+            result.push_back('+');
         }
+        result += words[i];
     }
+
     return result;
 }
 
-std::string sortWords(const std::string &input)
+std::string TransformAndSort(const std::string &line)
 {
-    const int MAX_WORDS = 100;
-    std::string words[MAX_WORDS];
-    int count = splitByPlus(input, words, MAX_WORDS);
-    sortWords(words, count);
-    return joinWithPlus(words, count);
+    if (line.empty())
+    {
+        throw std::runtime_error("Error: input string is empty!");
+    }
+
+    std::string s = line;
+
+    ReplaceVowelsAndSpaces(s);
+
+    std::vector<std::string> words = SplitIntoWords(s);
+
+    if (words.empty())
+    {
+        throw std::runtime_error("Error: no words found in the string!");
+    }
+
+    std::sort(words.begin(), words.end());
+
+    return JoinWords(words);
 }
 
 int main()
 {
-    std::string text;
-    std::getline(std::cin, text);
+    try
+    {
+        std::cout << "Enter a string:\n";
 
-    std::string noSpaces = spaceToPlus(text);
-    std::string modified = vowToBig(noSpaces);
-    std::string sorted = sortWords(modified);
+        std::string line;
+        if (!std::getline(std::cin, line))
+        {
+            throw std::runtime_error("Error: failed to read input line!");
+        }
 
-    std::cout << sorted << std::endl;
+        std::string result = TransformAndSort(line);
+
+        std::cout << "Result: " << result << '\n';
+    }
+    catch (const std::exception &e)
+    {
+        std::cerr << e.what() << '\n';
+        return 1;
+    }
+
     return 0;
 }
