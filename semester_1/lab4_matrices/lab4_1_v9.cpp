@@ -1,118 +1,194 @@
 #include <iostream>
 #include <random>
 #include <iomanip>
+#include <stdexcept>
 
-int** AllocateMatrix(int n, int m)
+int GetIntegerInput()
 {
-    int** mat = new int*[n];
-    for(int i = 0; i < n; i++)
+    int value;
+    if (!(std::cin >> value))
+    {
+        throw std::runtime_error("Error: input is not an integer!");
+    }
+    return value;
+}
+
+int **AllocateMatrix(int n, int m)
+{
+    if (n <= 0 || m <= 0)
+    {
+        throw std::invalid_argument("Error: matrix dimensions must be positive!");
+    }
+
+    int **mat = new int *[n];
+    for (int i = 0; i < n; ++i)
+    {
         mat[i] = new int[m];
+    }
     return mat;
 }
 
-void DeleteMatrix(int** mat, int n)
+void DeleteMatrix(int **mat, int n)
 {
-    for(int i = 0; i < n; i++)
+    if (mat == nullptr)
+    {
+        return;
+    }
+
+    for (int i = 0; i < n; ++i)
+    {
         delete[] mat[i];
+    }
     delete[] mat;
 }
 
-void FillKeyboard(int** mat, int n, int m)
+void GetDimensions(int &n, int &m)
 {
-    std::cout << "Enter " << n * m << " integers:" << std::endl;
-    for(int i = 0; i < n; i++)
-        for(int j = 0; j < m; j++)
-            std::cin >> mat[i][j];
+    std::cout << "Enter number of rows: ";
+    n = GetIntegerInput();
+
+    std::cout << "Enter number of columns: ";
+    m = GetIntegerInput();
+
+    if (n <= 0 || m <= 0)
+    {
+        throw std::invalid_argument("Error: matrix dimensions must be positive!");
+    }
 }
 
-bool FillRandom(int** mat, int n, int m)
+void FillKeyboard(int **mat, int n, int m)
 {
-    double a, b;
-    std::cout << "Enter a and b: ";
-    std::cin >> a >> b;
-    if(a > b)
+    std::cout << "Enter " << n * m << " integers:\n";
+    for (int i = 0; i < n; ++i)
     {
-        std::cout << "Error! Invalid a, b" << std::endl;
-        return false;
+        for (int j = 0; j < m; ++j)
+        {
+            mat[i][j] = GetIntegerInput();
+        }
     }
+}
 
-    std::mt19937 gen(45218965);
-    std::uniform_real_distribution<> dis(a, b);
-    for(int i = 0; i < n; i++)
-        for(int j = 0; j < m; j++)
+void GetRandomBounds(int &a, int &b)
+{
+    std::cout << "Enter integer bounds a and b for random(inclusive interval [a, b]): ";
+    a = GetIntegerInput();
+    b = GetIntegerInput();
+
+    if (a > b)
+    {
+        throw std::logic_error("Error: a must not be greater than b!");
+    }
+}
+
+void FillMatrixRandom(int **mat, int n, int m, std::mt19937 &gen)
+{
+    int a = 0;
+    int b = 0;
+    GetRandomBounds(a, b);
+
+    std::uniform_int_distribution<> dis(a, b);
+
+    for (int i = 0; i < n; ++i)
+    {
+        for (int j = 0; j < m; ++j)
+        {
             mat[i][j] = dis(gen);
-    return true;
-}
-
-void PrintMatrix(int** mat, int n, int m)
-{
-    std::cout << "Matrix:" << std::endl;
-    for(int i = 0; i < n; i++)
-    {
-        for(int j = 0; j < m; j++)
-            std::cout << std::setw(6) << mat[i][j];
-        std::cout << std::endl;
+        }
     }
 }
 
-int CountColsNoZero(int** mat, int n, int m)
+void PrintMatrix(int **mat, int n, int m)
+{
+    std::cout << "Matrix:\n";
+    for (int i = 0; i < n; ++i)
+    {
+        for (int j = 0; j < m; ++j)
+        {
+            std::cout << std::setw(6) << mat[i][j];
+        }
+        std::cout << '\n';
+    }
+}
+
+bool ColumnHasZero(int **mat, int n, int colIdx)
+{
+    for (int i = 0; i < n; ++i)
+    {
+        if (mat[i][colIdx] == 0)
+        {
+            return true;
+        }
+    }
+    return false;
+}
+
+int CountColsNoZero(int **mat, int n, int m)
 {
     int cols_no_zero = 0;
-    for(int j = 0; j < m; j++)
+    for (int j = 0; j < m; ++j)
     {
-        bool has_zero = false;
-        for(int i = 0; i < n; i++)
+        if (!ColumnHasZero(mat, n, j))
         {
-            if(mat[i][j] == 0)
-            {
-                has_zero = true;
-                break;
-            }
+            ++cols_no_zero;
         }
-        if(!has_zero)
-            cols_no_zero++;
     }
     return cols_no_zero;
 }
 
+int GetChoice()
+{
+    std::cout << "Choose filling method: 1 - keyboard, 2 - random: ";
+    int choice = GetIntegerInput();
+
+    if (choice != 1 && choice != 2)
+    {
+        throw std::invalid_argument("Error: incorrect menu choice!");
+    }
+
+    return choice;
+}
+
 int main()
 {
-    int n, m;
-    std::cout << "Enter number of rows and columns: ";
-    std::cin >> n >> m;
-    if(n < 1 || m < 1)
+    int **mat = nullptr;
+    int n = 0;
+    int m = 0;
+
+    std::mt19937 gen(45218965);
+
+    try
     {
-        std::cout << "Error! Invalid n or m" << std::endl;
-        return 0;
-    }
+        GetDimensions(n, m);
+        mat = AllocateMatrix(n, m);
 
-    int** mat = AllocateMatrix(n, m);
+        int choice = GetChoice();
 
-    int choice;
-    std::cout << "Choose filling method: 1 - keyboard, 2 - random: ";
-    std::cin >> choice;
-
-    if(choice == 1)
-        FillKeyboard(mat, n, m);
-    else if(choice == 2)
-    {
-        if(!FillRandom(mat, n, m))
+        if (choice == 1)
         {
-            DeleteMatrix(mat, n);
-            return 0;
+            FillKeyboard(mat, n, m);
         }
+        else
+        {
+            FillMatrixRandom(mat, n, m, gen);
+        }
+
+        PrintMatrix(mat, n, m);
+
+        int ans = CountColsNoZero(mat, n, m);
+        std::cout << "Number of columns without zeros: " << ans << '\n';
     }
-    else
+    catch (const std::bad_alloc &e)
     {
-        std::cout << "Error! Invalid choice" << std::endl;
+        std::cerr << "Memory allocation error: " << e.what() << '\n';
         DeleteMatrix(mat, n);
-        return 0;
+        return 1;
     }
-
-    PrintMatrix(mat, n, m);
-
-    int ans = CountColsNoZero(mat, n, m);
-    std::cout << "Number of columns without zeros: " << ans << std::endl;
+    catch (const std::exception &e)
+    {
+        std::cerr << e.what() << '\n';
+        DeleteMatrix(mat, n);
+        return 1;
+    }
 
     DeleteMatrix(mat, n);
     return 0;
