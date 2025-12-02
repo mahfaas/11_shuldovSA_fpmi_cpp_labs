@@ -1,4 +1,4 @@
-#include "fraction.h"
+#include "7_fraction.h"
 
 Fraction::Fraction(int n, unsigned m)
   : num_(n), denom_(m) {
