@@ -2,10 +2,12 @@
 #include <random>
 #include <iomanip>
 #include <stdexcept>
+#include <cstdint> 
+#include <cstddef> 
 
-int GetIntegerInput()
+std::int32_t GetIntegerInput()
 {
-    int value;
+    std::int32_t value;
     if (!(std::cin >> value))
     {
         throw std::runtime_error("Error: input is not an integer!");
@@ -13,64 +15,67 @@ int GetIntegerInput()
     return value;
 }
 
-int **AllocateMatrix(int n, int m)
+void AllocateMatrix(std::int32_t **&mat, std::size_t n, std::size_t m)
 {
-    if (n <= 0 || m <= 0)
+    if (n == 0 || m == 0)
     {
         throw std::invalid_argument("Error: matrix dimensions must be positive!");
     }
 
-    int **mat = new int *[n];
-    for (int i = 0; i < n; ++i)
+    mat = new std::int32_t *[n];
+    for (std::size_t i = 0; i < n; ++i)
     {
-        mat[i] = new int[m];
+        mat[i] = new std::int32_t[m];
     }
-    return mat;
 }
 
-void DeleteMatrix(int **mat, int n)
+void DeleteMatrix(std::int32_t **&mat, std::size_t n)
 {
     if (mat == nullptr)
     {
         return;
     }
 
-    for (int i = 0; i < n; ++i)
+    for (std::size_t i = 0; i < n; ++i)
     {
         delete[] mat[i];
     }
     delete[] mat;
+    mat = nullptr;
 }
 
-void GetDimensions(int &n, int &m)
+void GetDimensions(std::size_t &n, std::size_t &m)
 {
     std::cout << "Enter number of rows: ";
-    n = GetIntegerInput();
+    std::int32_t rows = GetIntegerInput();
 
     std::cout << "Enter number of columns: ";
-    m = GetIntegerInput();
+    std::int32_t cols = GetIntegerInput();
 
-    if (n <= 0 || m <= 0)
+    if (rows <= 0 || cols <= 0)
     {
         throw std::invalid_argument("Error: matrix dimensions must be positive!");
     }
+
+    n = static_cast<std::size_t>(rows);
+    m = static_cast<std::size_t>(cols);
 }
 
-void FillKeyboard(int **mat, int n, int m)
+void FillKeyboard(std::int32_t **mat, std::size_t n, std::size_t m)
 {
-    std::cout << "Enter " << n * m << " integers:\n";
-    for (int i = 0; i < n; ++i)
+    std::cout << "Enter " << n * m << " integer(s):\n";
+    for (std::size_t i = 0; i < n; ++i)
     {
-        for (int j = 0; j < m; ++j)
+        for (std::size_t j = 0; j < m; ++j)
         {
             mat[i][j] = GetIntegerInput();
         }
     }
 }
 
-void GetRandomBounds(int &a, int &b)
+void GetRandomBounds(std::int32_t &a, std::int32_t &b)
 {
-    std::cout << "Enter integer bounds a and b for random(inclusive interval [a, b]): ";
+    std::cout << "Enter integer bounds a and b for random (inclusive interval [a, b]): ";
     a = GetIntegerInput();
     b = GetIntegerInput();
 
@@ -80,29 +85,29 @@ void GetRandomBounds(int &a, int &b)
     }
 }
 
-void FillMatrixRandom(int **mat, int n, int m, std::mt19937 &gen)
+void FillMatrixRandom(std::int32_t **mat, std::size_t n, std::size_t m, std::mt19937 &gen)
 {
-    int a = 0;
-    int b = 0;
+    std::int32_t a = 0;
+    std::int32_t b = 0;
     GetRandomBounds(a, b);
 
-    std::uniform_int_distribution<> dis(a, b);
+    std::uniform_int_distribution<std::int32_t> dis(a, b);
 
-    for (int i = 0; i < n; ++i)
+    for (std::size_t i = 0; i < n; ++i)
     {
-        for (int j = 0; j < m; ++j)
+        for (std::size_t j = 0; j < m; ++j)
         {
             mat[i][j] = dis(gen);
         }
     }
 }
 
-void PrintMatrix(int **mat, int n, int m)
+void PrintMatrix(std::int32_t **mat, std::size_t n, std::size_t m)
 {
     std::cout << "Matrix:\n";
-    for (int i = 0; i < n; ++i)
+    for (std::size_t i = 0; i < n; ++i)
     {
-        for (int j = 0; j < m; ++j)
+        for (std::size_t j = 0; j < m; ++j)
         {
             std::cout << std::setw(6) << mat[i][j];
         }
@@ -110,9 +115,9 @@ void PrintMatrix(int **mat, int n, int m)
     }
 }
 
-bool ColumnHasZero(int **mat, int n, int colIdx)
+bool ColumnHasZero(std::int32_t **mat, std::size_t n, std::size_t colIdx)
 {
-    for (int i = 0; i < n; ++i)
+    for (std::size_t i = 0; i < n; ++i)
     {
         if (mat[i][colIdx] == 0)
         {
@@ -122,23 +127,25 @@ bool ColumnHasZero(int **mat, int n, int colIdx)
     return false;
 }
 
-int CountColsNoZero(int **mat, int n, int m)
+std::size_t CountColsNoZero(std::int32_t **mat, std::size_t n, std::size_t m)
 {
-    int cols_no_zero = 0;
-    for (int j = 0; j < m; ++j)
+    std::size_t cols_no_zero = 0;
+
+    for (std::size_t j = 0; j < m; ++j)
     {
         if (!ColumnHasZero(mat, n, j))
         {
             ++cols_no_zero;
         }
     }
+
     return cols_no_zero;
 }
 
-int GetChoice()
+std::int32_t GetChoice()
 {
     std::cout << "Choose filling method: 1 - keyboard, 2 - random: ";
-    int choice = GetIntegerInput();
+    std::int32_t choice = GetIntegerInput();
 
     if (choice != 1 && choice != 2)
     {
@@ -150,18 +157,18 @@ int GetChoice()
 
 int main()
 {
-    int **mat = nullptr;
-    int n = 0;
-    int m = 0;
+    std::int32_t **mat = nullptr;
+    std::size_t n = 0;
+    std::size_t m = 0;
 
     std::mt19937 gen(45218965);
 
     try
     {
         GetDimensions(n, m);
-        mat = AllocateMatrix(n, m);
+        AllocateMatrix(mat, n, m);
 
-        int choice = GetChoice();
+        std::int32_t choice = GetChoice();
 
         if (choice == 1)
         {
@@ -174,7 +181,7 @@ int main()
 
         PrintMatrix(mat, n, m);
 
-        int ans = CountColsNoZero(mat, n, m);
+        std::size_t ans = CountColsNoZero(mat, n, m);
         std::cout << "Number of columns without zeros: " << ans << '\n';
     }
     catch (const std::bad_alloc &e)
