@@ -2,8 +2,8 @@
 #include <random>
 #include <iomanip>
 #include <stdexcept>
-#include <cstdint> 
-#include <cstddef> 
+#include <cstdint>
+#include <cstddef>
 
 std::int32_t GetIntegerInput()
 {
@@ -142,6 +142,48 @@ std::size_t CountColsNoZero(std::int32_t **mat, std::size_t n, std::size_t m)
     return cols_no_zero;
 }
 
+std::size_t FindLongestIncreasingRow(std::int32_t **mat, std::size_t n, std::size_t m, std::size_t &bestLen)
+{
+    if (n == 0 || m == 0)
+    {
+        throw std::runtime_error("Error: matrix must have positive dimensions!");
+    }
+
+    std::size_t bestRow = 0;
+    bestLen = 1;
+
+    for (std::size_t i = 0; i < n; ++i)
+    {
+        std::size_t curLen = 1;
+        std::size_t maxInRow = 1;
+
+        for (std::size_t j = 1; j < m; ++j)
+        {
+            if (mat[i][j] > mat[i][j - 1])
+            {
+                ++curLen;
+            }
+            else
+            {
+                curLen = 1;
+            }
+
+            if (curLen > maxInRow)
+            {
+                maxInRow = curLen;
+            }
+        }
+
+        if (maxInRow > bestLen)
+        {
+            bestLen = maxInRow;
+            bestRow = i;
+        }
+    }
+
+    return bestRow;
+}
+
 std::int32_t GetChoice()
 {
     std::cout << "Choose filling method: 1 - keyboard, 2 - random: ";
@@ -181,8 +223,14 @@ int main()
 
         PrintMatrix(mat, n, m);
 
-        std::size_t ans = CountColsNoZero(mat, n, m);
-        std::cout << "Number of columns without zeros: " << ans << '\n';
+        std::size_t colsNoZero = CountColsNoZero(mat, n, m);
+        std::cout << "Number of columns without zeros: " << colsNoZero << '\n';
+
+        std::size_t bestLen = 0;
+        std::size_t bestRow = FindLongestIncreasingRow(mat, n, m, bestLen);
+
+        std::cout << "Longest strictly increasing sequence length: " << bestLen << '\n';
+        std::cout << "First row containing such sequence: " << bestRow + 1 << '\n';
     }
     catch (const std::bad_alloc &e)
     {
