@@ -5,35 +5,41 @@
 #include <stdexcept>
 #include <cctype>
 
-bool IsLatinVowelLower(char ch)
+bool IsLatinVowelLower(char ch) noexcept
 {
     return ch == 'a' || ch == 'e' || ch == 'i' ||
            ch == 'o' || ch == 'u' || ch == 'y';
 }
 
-void ReplaceVowelsAndSpaces(std::string &s)
+char TransformChar(char ch) noexcept
+{
+    if (IsLatinVowelLower(ch))
+    {
+        return static_cast<char>(std::toupper(static_cast<unsigned char>(ch)));
+    }
+    if (ch == ' ')
+    {
+        return '+';
+    }
+    return ch;
+}
+
+void TransformStringInPlace(std::string &s)
 {
     for (char &ch : s)
     {
-        if (IsLatinVowelLower(ch))
-        {
-            ch = static_cast<char>(std::toupper(static_cast<unsigned char>(ch)));
-        }
-        else if (ch == ' ')
-        {
-            ch = '+';
-        }
+        ch = TransformChar(ch);
     }
 }
 
-std::vector<std::string> SplitIntoWords(const std::string &s)
+std::vector<std::string> SplitByDelimiter(const std::string &s, char delimiter)
 {
     std::vector<std::string> words;
     std::string current;
 
     for (char ch : s)
     {
-        if (ch == '+')
+        if (ch == delimiter)
         {
             if (!current.empty())
             {
@@ -55,7 +61,8 @@ std::vector<std::string> SplitIntoWords(const std::string &s)
     return words;
 }
 
-std::string JoinWords(const std::vector<std::string> &words)
+
+std::string JoinWithDelimiter(const std::vector<std::string> &words, char delimiter)
 {
     std::string result;
 
@@ -63,7 +70,7 @@ std::string JoinWords(const std::vector<std::string> &words)
     {
         if (i > 0)
         {
-            result.push_back('+');
+            result.push_back(delimiter);
         }
         result += words[i];
     }
@@ -71,48 +78,71 @@ std::string JoinWords(const std::vector<std::string> &words)
     return result;
 }
 
+void SortWordsLexicographically(std::vector<std::string> &words)
+{
+    std::sort(words.begin(), words.end());
+}
+
 std::string TransformAndSort(const std::string &line)
 {
     if (line.empty())
     {
-        throw std::runtime_error("Error: input string is empty!");
+        throw std::invalid_argument("Input string is empty");
     }
 
-    std::string s = line;
+    std::string transformed = line;
 
-    ReplaceVowelsAndSpaces(s);
+    TransformStringInPlace(transformed);
 
-    std::vector<std::string> words = SplitIntoWords(s);
+    std::vector<std::string> words = SplitByDelimiter(transformed, '+');
 
     if (words.empty())
     {
-        throw std::runtime_error("Error: no words found in the string!");
+        throw std::logic_error("No words found after transformation");
     }
 
-    std::sort(words.begin(), words.end());
+    SortWordsLexicographically(words);
 
-    return JoinWords(words);
+    return JoinWithDelimiter(words, '+');
+}
+
+std::string ReadLineOrThrow()
+{
+    std::string line;
+    if (!std::getline(std::cin, line))
+    {
+        throw std::runtime_error("Failed to read input line");
+    }
+    return line;
 }
 
 int main()
 {
     try
     {
-        std::cout << "Enter a string:\n";
-
-        std::string line;
-        if (!std::getline(std::cin, line))
-        {
-            throw std::runtime_error("Error: failed to read input line!");
-        }
-
+        std::string line = ReadLineOrThrow();
         std::string result = TransformAndSort(line);
 
         std::cout << "Result: " << result << '\n';
     }
+    catch (const std::invalid_argument &e)
+    {
+        std::cerr << "Invalid argument: " << e.what() << '\n';
+        return 1;
+    }
+    catch (const std::logic_error &e)
+    {
+        std::cerr << "Logic error: " << e.what() << '\n';
+        return 1;
+    }
+    catch (const std::runtime_error &e)
+    {
+        std::cerr << "Runtime error: " << e.what() << '\n';
+        return 1;
+    }
     catch (const std::exception &e)
     {
-        std::cerr << e.what() << '\n';
+        std::cerr << "Unexpected error: " << e.what() << '\n';
         return 1;
     }
 
