@@ -1,28 +1,36 @@
 #include <iostream>
+#include "mersenne.h"
 
-int main() 
+int main()
 {
     long long a, b;
     std::cout << "Enter a and b: " << std::endl;
-    if(!(std::cin >> a >> b) || a < 0 || b < 0 || a > b)
+
+    if (!(std::cin >> a >> b))
     {
         std::cout << "Error!" << std::endl;
         return 0;
     }
-    long long cur = 1; 
-    bool f = false;
-    while(true) 
+
+    try
     {
-        if(cur >= a && cur <= b) 
+        auto res = GetMersenneInRange(a, b);
+
+        if (res.empty())
         {
-            std::cout << cur << " ";
-            f = true;
+            std::cout << "No Mersenne numbers in the range" << std::endl;
         }
-        cur = 2 * cur + 1;
-        if(cur > b) 
-            break;
+        else
+        {
+            for (long long x : res)
+                std::cout << x << " ";
+            std::cout << std::endl;
+        }
     }
-    if(!f) 
-        std::cout << "No Mersenne numbers in the range(" << std::endl;
+    catch (const std::invalid_argument &)
+    {
+        std::cout << "Error!" << std::endl;
+    }
+
     return 0;
 }
