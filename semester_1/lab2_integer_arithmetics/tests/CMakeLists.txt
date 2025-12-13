@@ -1,14 +1,9 @@
-set(TEST_SOURCES
-    mersenne_tests.cpp
+add_executable(mersenne_boost_tests mersenne_boost_tests.cpp)
+
+target_include_directories(mersenne_boost_tests PRIVATE
+    "C:/Users/Stanislau/vcpkg/installed/x64-mingw-static/include"
 )
 
-add_executable(mersenne_tests ${TEST_SOURCES})
+target_link_libraries(mersenne_boost_tests PRIVATE mersenne_lib)
 
-target_link_libraries(mersenne_tests
-    PRIVATE
-        mersenne_lib
-        gtest
-        gtest_main
-)
-
-add_test(NAME MersenneTests COMMAND mersenne_tests)
+add_test(NAME MersenneBoostTest COMMAND mersenne_boost_tests)
