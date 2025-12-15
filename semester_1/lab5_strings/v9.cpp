@@ -5,34 +5,27 @@
 #include <stdexcept>
 #include <cctype>
 
-bool IsLatinVowelLower(char ch) noexcept
+bool isVowel(char ch)
 {
-    return ch == 'a' || ch == 'e' || ch == 'i' ||
-           ch == 'o' || ch == 'u' || ch == 'y';
+    return ch == 'a' || ch == 'e' || ch == 'i' || ch == 'o' || ch == 'u' || ch == 'y';
 }
 
-char TransformChar(char ch) noexcept
-{
-    if (IsLatinVowelLower(ch))
-    {
-        return static_cast<char>(std::toupper(static_cast<unsigned char>(ch)));
-    }
-    if (ch == ' ')
-    {
-        return '+';
-    }
-    return ch;
-}
-
-void TransformStringInPlace(std::string &s)
+void transformString(std::string &s)
 {
     for (char &ch : s)
     {
-        ch = TransformChar(ch);
+        if (isVowel(ch))
+        {
+            ch = static_cast<char>(std::toupper(static_cast<unsigned char>(ch)));
+        }
+        else if (ch == ' ')
+        {
+            ch = '+';
+        }
     }
 }
 
-std::vector<std::string> SplitByDelimiter(const std::string &s, char delimiter)
+std::vector<std::string> split(const std::string &s, char delimiter)
 {
     std::vector<std::string> words;
     std::string current;
@@ -61,8 +54,7 @@ std::vector<std::string> SplitByDelimiter(const std::string &s, char delimiter)
     return words;
 }
 
-
-std::string JoinWithDelimiter(const std::vector<std::string> &words, char delimiter)
+std::string join(const std::vector<std::string> &words, char delimiter)
 {
     std::string result;
 
@@ -78,12 +70,20 @@ std::string JoinWithDelimiter(const std::vector<std::string> &words, char delimi
     return result;
 }
 
-void SortWordsLexicographically(std::vector<std::string> &words)
+std::string sortWords(const std::string& line)
 {
+    std::vector<std::string> words = split(line, '+');
+
+    if (words.empty())
+    {
+        throw std::logic_error("No words found after transformation");
+    }
+
     std::sort(words.begin(), words.end());
+    return join(words, '+');
 }
 
-std::string TransformAndSort(const std::string &line)
+std::string transform(const std::string &line)
 {
     if (line.empty())
     {
@@ -92,21 +92,12 @@ std::string TransformAndSort(const std::string &line)
 
     std::string transformed = line;
 
-    TransformStringInPlace(transformed);
+    transformString(transformed);
 
-    std::vector<std::string> words = SplitByDelimiter(transformed, '+');
-
-    if (words.empty())
-    {
-        throw std::logic_error("No words found after transformation");
-    }
-
-    SortWordsLexicographically(words);
-
-    return JoinWithDelimiter(words, '+');
+    return transformed;
 }
 
-std::string ReadLineOrThrow()
+std::string readLine()
 {
     std::string line;
     if (!std::getline(std::cin, line))
@@ -120,9 +111,9 @@ int main()
 {
     try
     {
-        std::string line = ReadLineOrThrow();
-        std::string result = TransformAndSort(line);
-
+        std::string line = readLine();
+        std::string result = transform(line);
+        result = sortWords(result);
         std::cout << "Result: " << result << '\n';
     }
     catch (const std::invalid_argument &e)
