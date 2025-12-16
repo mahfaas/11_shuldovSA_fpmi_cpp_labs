@@ -18,9 +18,11 @@ public:
     Vector(std::initializer_list<int> init);
 
     Vector(const Vector& other);
-
     Vector& operator=(const Vector& other);
 
+    Vector& operator=(Vector&& other) noexcept;
+    Vector(Vector&& other) noexcept;
+    
     ~Vector();
 
     void Swap(Vector& other) noexcept;
