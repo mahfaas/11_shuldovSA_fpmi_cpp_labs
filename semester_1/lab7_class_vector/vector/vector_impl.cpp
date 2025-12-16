@@ -54,7 +54,7 @@ Vector& Vector::operator=(const Vector& other) {
     return *this;
 }
 
-Vector& Vector::operator=(Vector&& other) noexcept{
+Vector& Vector::operator=(Vector&& other) noexcept {
     if (this == &other) {
         return *this;
     }
