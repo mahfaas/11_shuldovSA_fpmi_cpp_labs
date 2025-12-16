@@ -54,7 +54,7 @@ Vector& Vector::operator=(const Vector& other) {
     return *this;
 }
 
-Vector& Vector::operator=(Vector&& other) {
+Vector& Vector::operator=(Vector&& other) noexcept{
     if (this == &other) {
         return *this;
     }
@@ -72,7 +72,7 @@ Vector& Vector::operator=(Vector&& other) {
     return *this;
 }
 
-Vector::Vector(Vector&& other)
+Vector::Vector(Vector&& other) noexcept
     : data_(other.data_), size_(other.size_), capacity_(other.capacity_) {
     other.data_ = nullptr;
     other.size_ = 0;
