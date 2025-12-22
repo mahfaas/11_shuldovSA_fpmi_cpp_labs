@@ -2,6 +2,9 @@
 
 #include <iterator>
 #include <iostream>
+#include <cstdint>
+#include <initializer_list>
+#include <stdexcept>
 
 class ForwardList {
 
@@ -10,7 +13,7 @@ private:
         int32_t value_;
         Node* next_;
 
-        explicit Node(int value) : value_(value), next_(nullptr) {
+        explicit Node(int32_t value) : value_(value), next_(nullptr) {
         }
     };
 
@@ -27,9 +30,10 @@ public:
         }
 
         ForwardListIterator& operator++() {  // prefix
-            if (position_ != nullptr) {
-                position_ = position_->next_;
+            if (position_ == nullptr) {
+                throw std::out_of_range("ForwardListIterator: increment end()");
             }
+            position_ = position_->next_;
             return *this;
         }
 
@@ -40,7 +44,7 @@ public:
         }
 
         bool operator==(const ForwardListIterator& other) const {
-            // your code goes here
+            return (position_ == other.position_);
         }
 
         bool operator!=(const ForwardListIterator& other) const {
@@ -48,13 +52,19 @@ public:
         }
 
         reference operator*() const {
+            if (position_ == nullptr) {
+                throw std::out_of_range("ForwardListIterator: dereference end()");
+            }
             return position_->value_;
         }
 
-        pointer operator->() {
+        pointer operator->() const {
+            if (position_ == nullptr) {
+                throw std::out_of_range("ForwardListIterator: access end()");
+            }
             return &position_->value_;
         }
-        
+
     private:
         Node* position_;
     };
@@ -62,24 +72,25 @@ public:
     // methods for "ranged-based for loop"
     // 1) non-const version
     ForwardListIterator begin() {
-        // your code goes here
+        return ForwardListIterator(head_);
     }
     ForwardListIterator end() {
-        // your code goes here
+        return ForwardListIterator(nullptr);
     }
 
     // 2) const version
     // TODO: think about return type
-    // (is it exactly ForwardListIterator?)
+    // (is it exactly ForwardListIterator?) тут надо написать свой ConstIterator тк сейчас поскольку
+    // возвращается int32_t& мы можем менять даже константный список
     ForwardListIterator begin() const {
-        // your code goes here
+        return ForwardListIterator(head_);
     }
     ForwardListIterator end() const {
-        // your code goes here
+        return ForwardListIterator(nullptr);
     }
 
     // default constructor
-    ForwardList();
+    ForwardList() = default;
 
     // copy constructor
     ForwardList(const ForwardList& rhs);
@@ -91,7 +102,7 @@ public:
     ForwardList(std::initializer_list<int32_t> init);
 
     // operator= overloading
-    ForwardList& operator=(const ForwardList& rhs);
+    ForwardList& operator=(ForwardList rhs);
 
     // destructor
     ~ForwardList();
@@ -125,5 +136,8 @@ public:
     size_t Size() const;
 
 private:
-    // your code goes here
+    Node* head_ = nullptr;
+    size_t size_ = 0;
+
+    void swap(ForwardList& other) noexcept;
 };
